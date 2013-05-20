@@ -16,4 +16,23 @@ def Log(what, *arg):
 def CheckDisplay(entry):
 	return eve.GetBool(entry, 'display')
 
+def HasChild(cont, name):
+	eve.Children(cont, '__cs')
+	l = eve.Len('__cs')
+	for i in range(l):
+		eve.GetListItem('__cs', i, '__c')
+		if eve.GetString('__c', 'name') == name:
+			return True
+	return False
+
+def CloseWnd(wnd):
+	eve.Click(wnd)
+	eve.FindChild(wnd, '__maincontainer', '_')
+	while not HasChild('_', 'headerButtons'):
+		time.sleep(0.5)
+	eve.FindChild('_', 'headerButtons', '_')
+	eve.FindChild('_', 'close', '_')
+	while not CheckDisplay('_'):
+		time.sleep(0.5)
+	eve.Click('_', 16, 16)
 
