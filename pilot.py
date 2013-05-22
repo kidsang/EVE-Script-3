@@ -31,9 +31,7 @@ def autopilot():
 		while not CheckDisplay(waypoint):
 			ov.ScrollTo(waypoint)
 
-		eve.Click(waypoint)
-		while not ov.CheckSelected(waypoint):
-			eve.Click(waypoint)
+		ov.SelectEntry(waypoint)
 
 		for i in range(3):
 			eve.Press(sc.Activate)

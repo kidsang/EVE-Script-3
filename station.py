@@ -1,6 +1,7 @@
 import time
 import maincont
 import shortcut as sc
+import view
 import menu
 from util import *
 
@@ -76,7 +77,7 @@ def OpenInventory():
 
 	formname = None
 	while not formname:
-		formname = maincont.HasFormReg(r"\('" + "InventoryStation" + r"'\,.*\)")
+		formname = maincont.HasFormReg(maincont.StationInventoryReg)
 		time.sleep(1)
 
 	form = 'station_prime_inventory_wnd'
@@ -91,15 +92,10 @@ def OpenInventory():
 	Log('end', -1)
 	return form
 
-def FindItem(itemName):
-	Log('Finding item "' + item + '" in inventory', 1)
-	cont = 'station_inventory_wnd'
-	maincont.GetForm('InventoryStation', cont)
-	eve.FindChild(cont, 'scroll', '_')
-	eve.FindChild('_', 'maincontainer', '_')
-	eve.FindChild('_', '__clipper', '_')
-	eve.FindChild('_', '__content', '_')
-	eve.FindChild('_', 'entry_0', '_')
+def GetInventory():
+	form = 'station_prime_inventory_wnd'
+	maincont.GetForm(formname, form)
+	return form
 
 def _GetInventoryTreeCont(inventory):
 	eve.FindChild(inventory, '__maincontainer', '_')
@@ -134,8 +130,7 @@ def GetInventoryBody():
 	maincont.GetForm('InventoryStation', cont)
 	return cont
 
-def ListInventoryItems():
-	inventory = GetInventoryBody()
+def ListInventoryItems(inventory):
 	eve.FindChild(inventory, 'scroll', '_')
 	eve.FindChild('_', 'maincontainer', '_')
 	eve.FindChild('_', '__clipper', '_')
@@ -206,13 +201,17 @@ def FindItemIn(cont, targetName):
 		Log('Item not found', -1)
 		return None
 
-def LoadOrUnloadItem(itemName, load):
+def LoadOrUnloadItem(itemName, load, invOpened = False):
 	if load:
 		Log('Load item "' + itemName + '"', 1)
 	else:
 		Log('Unload item "' + itemName + '"', 1)
 
-	inventory = OpenInventory()
+	if invOpened:
+		inventory = GetInventory()
+	else:
+		inventory = OpenInventory()
+
 	shipIcon = GetInventoryTreeShipCargoUI(inventory)
 	hangarIcon = GetInventoryTreeItemHangarUI(inventory)
 
@@ -223,12 +222,10 @@ def LoadOrUnloadItem(itemName, load):
 
 	item = FindItemIn(GetInventoryBody(), itemName)
 
-
 	if load:
-		eve.DragDrop(item, shipIcon)
+		eve.DragDrop(item, shipIcon, 30, 30)
 	else:
-		eve.DragDrop(item, hangarIcon)
-
+		eve.DragDrop(item, hangarIcon, 30, 30)
 
 	if load:
 		eve.Click(shipIcon)
@@ -242,16 +239,20 @@ def LoadOrUnloadItem(itemName, load):
 
 	Log('end', -1)
 
-def LoadItem(itemName):
-	LoadOrUnloadItem(itemName, True)
+def LoadItem(itemName, invOpened = False):
+	LoadOrUnloadItem(itemName, True, invOpened)
 
-def UnloadItem(itemName):
-	LoadOrUnloadItem(itemName, False)
+def UnloadItem(itemName, invOpened = False):
+	LoadOrUnloadItem(itemName, False, invOpened)
 
-def StackItemsInHangar():
+def StackItemsInHangar(invOpened = False):
 	Log('Stack items in hangar', 1)
 
-	inventory = OpenInventory()
+	if invOpened:
+		inventory = GetInventory()
+	else:
+		inventory = OpenInventory()
+
 	hangarIcon = GetInventoryTreeItemHangarUI(inventory)
 	eve.Click(hangarIcon)
 
@@ -262,4 +263,112 @@ def StackItemsInHangar():
 	maincont.CloseWnd(inventory)
 
 	Log('end', -1)
-	
+
+def OpenFitting():
+	Log('Open fitting window')
+	eve.Press(sc.Fitting)
+
+	form = 'station_fitting_wnd'
+	while not maincont.HasForm('fitting'):
+		time.sleep(1)
+	maincont.GetForm('fitting', form)
+	Log('end', -1)
+	return form
+
+def GetSlot(fitting, i, j):
+	slot = 'station_fitting_slot'
+	slotName = 'slot_' + str(i) + '_' + str(j)
+	eve.GetAttr(fitting, 'sr', '_')
+	eve.GetAttr('_', 'fitting', '_')
+	eve.FindChild('_', 'slotParent', '_')
+	eve.FindChild('_', slotName, slot)
+	return slot
+
+def UnfitSlots(slotIDs):
+	Log('Unfitting slots:' + str(slotIDs), 1)
+
+	fitting = OpenFitting()
+
+	for slotID in slotIDs:
+		slot = GetSlot(fitting, slotID[0], slotID[1])
+		eve.RightClick(slot, 20, 30)
+		menu.Click('Unfit')
+
+	maincont.CloseWnd(fitting)
+	Log('end', -1)
+
+def FitEquips(equipNames, invOpened = False):
+	Log('Fitting equipments:' + str(equipNames), 1)
+
+	if invOpened:
+		inventory = GetInventory()
+	else:
+		inventory = OpenInventory()
+
+	for equipName in equipNames:
+		equip = FindItemIn(GetInventoryBody(), equipName)
+		eve.RightClick(equip, 30, 30)
+		menu.Click('Fit to Active Ship')
+
+	maincont.CloseWnd(inventory)
+	Log('end', -1)
+
+def OpenShipHangar():
+	Log('Open ship hangar', 1)
+	eve.Press(sc.ShipHangar)
+
+	formname = None
+	while not formname:
+		formname = maincont.HasFormReg(maincont.StationShipReg)
+		time.sleep(1)
+
+	form = 'station_prime_ship_hangar_wnd'
+	maincont.GetForm(formname, form)
+	eve.GetAttr(form, 'sr', '_')
+	eve.GetAttr('_', 'loadingIndicator', '_')
+
+	Log('Loading ships')
+	while CheckDisplay('_'):
+		time.sleep(1)
+
+	Log('end', -1)
+	return form
+
+def GetShipHangarBody():
+	cont = 'station_ship_hangar_wnd'
+	maincont.GetForm('StationShips', cont)
+	return cont
+
+def ActivateShip(shipName):
+	Log('Activating ship "' + shipName + '"', 1)
+	shipHangar = OpenShipHangar()
+	ship = FindItemIn(GetShipHangarBody(), shipName)
+	eve.RightClick(ship, 30, 30)
+	menu.Click('Make Active')
+	maincont.CloseWnd(shipHangar)
+	Log('end', -1)
+
+def GetUndockBtnCont():
+	cont = 'station_undock_btn_cont'
+	if cont not in catch:
+		eve.GetAttr('layer', 'sidepanels', '_')
+		eve.FindChild('_', 'Neocom', '_')
+		eve.FindChild('_', 'mainCont', '_')
+		eve.FindChild('_', 'fixedButtonCont', cont)
+		catch[cont] = cont
+	return cont
+
+def Undock():
+	Log('Undocking', 1)
+
+	cont = GetUndockBtnCont()
+	eve.FindChild(cont, 'undock', '_')
+	eve.Click('_')
+
+	Log('Entering space')
+	while not view.CurrentView() == 'inflight':
+		time.sleep(1)
+
+	time.sleep(4)
+
+	Log('end', -1)

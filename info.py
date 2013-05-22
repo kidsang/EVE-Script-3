@@ -33,17 +33,14 @@ def CurrentSystem():
 
 def GetRoutePanel():
 	name = 'info_panel_route_info'
-	if name not in catch:
-		cont = GetInfoContainer()
-		eve.FindChild(cont, 'InfoPanelRoute', name)
-		catch[name] = name
+	cont = GetInfoContainer()
+	eve.FindChild(cont, 'InfoPanelRoute', name)
 	return name
 
 def GetNoDestinationLabel():
 	name = 'info_panel_no_destination_label'
-	cont = GetInfoContainer()
-	eve.FindChild(cont, 'InfoPanelRoute', '_')
-	eve.FindChild('_', 'mainCont', '_')
+	panel = GetRoutePanel()
+	eve.FindChild(panel, 'mainCont', '_')
 	eve.FindChild('_', 'noDestinationLabel', name)
 	return name
 
@@ -53,3 +50,48 @@ def HasWaypoint():
 		time.sleep(0.5)
 	name = GetNoDestinationLabel()
 	return not CheckDisplay(name)
+
+def GetAgentMissionsPanel():
+	name = 'info_panel_agent_mission_panel'
+	cont = GetInfoContainer()
+	eve.FindChild(cont, 'InfoPanelMissions', name)
+	return name
+
+def OpenUtilMenu():
+	Log('Open util menu', 1)
+	panel = GetAgentMissionsPanel()
+	eve.FindChild(panel, 'mainCont', '_')
+	eve.FindChild('_', 'UtilMenu', '_')
+	eve.FindChild('_', 'EveLabelMedium', '_')
+	eve.Click('_')
+	Log('end', -1)
+
+def ClickUtilMenu(itemName):
+	Log('Click util menu item "' + itemName + '"')
+	eve.GetAttr('layer', 'utilmenu', '_')
+	eve.FindChild('_', 'ExpandedUtilMenu', '_')
+	eve.Children('_', 'children')
+	l = eve.Len('children')
+	for i in range(l):
+		eve.GetListItem('children', i, '_')
+		if eve.GetString('_', 'name') == 'UtilMenuIconEntry':
+			eve.FindChild('_', 'EveLabelMedium', '_')
+			if eve.GetString('_', 'text') == itemName:
+				eve.Click('_')
+				return True
+	return False
+
+def OpenUtilMenuAddClick(itemName):
+	OpenUtilMenu()
+	ClickUtilMenu(itemName)
+
+def Dock():
+	OpenUtilMenuAddClick('Dock')
+
+def SetDestination():
+	OpenUtilMenuAddClick('Set Destination')
+
+def WarpToLocation():
+	OpenUtilMenuAddClick('Warp to Location')
+
+# WarpToLocation()

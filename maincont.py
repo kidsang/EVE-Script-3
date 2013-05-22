@@ -3,6 +3,10 @@ import re
 
 catch = {}
 
+StationInventoryReg = r"\('" + "InventoryStation" + r"'\,.*\)"
+StationShipReg = r"\('" + "StationShips" + r"'\,.*\)"
+SpaceInventoryReg = r"\('" + "InventorySpace" + r"'\,.*\)"
+
 def GetMain():
 	main = 'ui_main_cont'
 	if main not in catch:

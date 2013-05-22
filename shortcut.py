@@ -21,6 +21,7 @@ Map = 'f10'
 Inventory = 'alt+c'
 ShipHangar = 'alt+n'
 Journal = 'alt+j'
+Fitting = 'alt+f'
 
 # moodules
 LowSlot1 = 'ctrl+f1'

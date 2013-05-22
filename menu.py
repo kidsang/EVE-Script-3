@@ -39,10 +39,10 @@ def Click(targetName):
 			name = eve.GetString('_', 'text')
 			if name == targetName:
 				eve.Click('_')
-				Log('Menu item finded')
+				Log('Menu item finded', -1)
 				return True
 
-	Log('Menu item not found')
+	Log('Menu item not found', -1)
 	return False
 
 

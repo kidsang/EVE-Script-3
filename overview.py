@@ -1,4 +1,9 @@
 import time
+import maincont
+import ship
+import maincont
+import shortcut as sc
+from util import *
 
 catch = {}
 
@@ -27,12 +32,12 @@ def GetOvScroller():
 	return scroller
 
 def Refresh():
-	scroller =sc = GetOvScroller()
+	scroller = GetOvScroller()
 	cont = GetOvEntryContainer()
 	eve.GetParent(cont, 'clipper')
 	for i in range(10):
-		pos = int(eve.GetString(sc, '_position'))
-		totalHeight = int(eve.GetString(sc, '_totalHeight'))
+		pos = int(eve.GetString(scroller, '_position'))
+		totalHeight = int(eve.GetString(scroller, '_totalHeight'))
 		contHeight = int(eve.GetString('clipper', 'displayHeight'))
 		if pos + contHeight == totalHeight:
 			break
@@ -97,6 +102,11 @@ def CheckSelected(entry):
 	node = GetEntryNode(entry)
 	return eve.GetBool(node, 'selected')
 
+def SelectEntry(entry):
+	eve.Click(entry)
+	while not CheckSelected(entry):
+		eve.Click(entry)
+
 def GetWaypoint():
 	waypoint = 'ov_waypoint'
 	entries = GetOvEntries()
@@ -111,23 +121,56 @@ def GetWaypoint():
 				return waypoint
 	return None
 
+def GetOvEntryByName(targetName, fullyMatch = False):
+	Log('Finding entry "' + targetName + '" in overview', 1)
+
+	entry = 'ov_entry'
+	current = 0
+	scroller = GetOvScroller()
+	cont = GetOvEntryContainer()
+	eve.GetParent(cont, 'clipper')
+	totalHeight = int(eve.GetString(scroller, '_totalHeight'))
+	contHeight = int(eve.GetString('clipper', 'displayHeight'))
+	eve.Click(scroller, 60, 60)
+
+	while True:
+		entries = GetOvEntries()
+		l = eve.Len(entries)
+		Log('Finding in row ' + str(current) + ' to ' + str(l))
+		for i in range(current, l):
+			eve.GetListItem(entries, i, entry)
+			name = GetEntryName(entry)
+			matched = False
+			if fullyMatch and name == targetName:
+				matched = True
+			if not fullyMatch and name.find(targetName) != -1:
+				matched = True
+			if matched:
+				ScrollTo(entry)
+				Log('Entry finded: ' + name, -1)
+				return entry
+
+		current = l / 2
+		pos = int(eve.GetString(scroller, '_position'))
+		if pos + contHeight < totalHeight:
+			ScrollDown()
+		else:
+			Log('Entry not found', -1)
+			return None
+
 # active item view
 
 def GetItemViewContainer():
 	container = 'ov_item_view_btn_container'
-	if container not in catch:
-		eve.GetAttr('layer', 'main')
-		eve.FindChild('main', 'selecteditemview')
-		eve.GetAttr('selecteditemview', 'sr', '_')
-		eve.GetAttr('_', 'actions', container)
-		catch[container] = container
+	main = maincont.GetMain()
+	eve.FindChild(main, 'selecteditemview')
+	eve.GetAttr('selecteditemview', 'sr', '_')
+	eve.GetAttr('_', 'actions', container)
 	return container
 
-def GetItemViewBtns():
+def ListItemViewBtns():
 	container = GetItemViewContainer()
-	btns = 'ov_item_view_btns'
-	eve.Children(container, btns)
-	return btns
+	eve.Children(container)
 
 def GetItemViewBtn(name):
 	btn = 'ov_item_view_btn'
@@ -160,6 +203,74 @@ def UnLockTargetBtn():
 def DockBtn():
 	return GetItemViewBtn('Dock')
 
+def OpenCargoBtn():
+	return GetItemViewBtn('OpenCargo')
+
+# inventory actions
+
+def GetInventory(invName):
+	inv = 'overview_inventory_space_prime'
+	maincont.GetForm(invName, inv)
+	return inv
+
+def LootAll(inventory):
+	eve.FindChild(inventory, '__maincontainer', '_')
+	eve.FindChild('_', 'main', '_')
+	eve.FindChild('_', 'rightCont', '_')
+	eve.FindChild('_', 'bottomRightcont', '_')
+	eve.FindChild('_', 'specialActionsCont', '_')
+	eve.FindChild('_', 'invLootAllBtn', '_')
+	eve.Click('_')
+
+
+# 
+
+def ActivateAccelerationGate(gateName = None):
+	Log('Travel throught acceleration gate', 1)
+
+	if not gateName:
+		gateName = 'Acceleration Gate'
+
+	entry = GetOvEntryByName(gateName)
+
+	SelectEntry(entry)
+
+	Log('Approaching acceleration gate')
+	while not ship.Warping():
+		eve.Press(sc.Activate)
+		time.sleep(1)
+
+	Log('Warping')
+	while ship.Warping():
+		time.sleep(0.5)
+
+	Log('end', -1)
+
+def PickTarget(targetName = None, fullyMatch = False):
+
+	if not targetName:
+		targetName = 'Cargo'
+
+	Log('Picking ' + targetName, 1)
+
+	entry = GetOvEntryByName(targetName, fullyMatch)
+
+	SelectEntry(entry)
+
+	btn = OpenCargoBtn()
+	invName = None
+	Log('Approaching target')
+	while not invName:
+		eve.Click(btn)
+		invName = maincont.HasFormReg(maincont.SpaceInventoryReg)
+		time.sleep(0.5)
+
+	inv = GetInventory(invName)
+	LootAll(inv)
+	CloseWnd(inv)
+
+	Log('end', -1)
+
 # entries = GetOvEntries()
 # l = eve.Len(entries)
 # for i in range(l):
@@ -169,3 +280,4 @@ def DockBtn():
 # 	node = GetEntryNode(entry)
 # 	eve.Trace(eve.GetString(node, 'itemID'))
 # 	eve.Trace(' ')
+
