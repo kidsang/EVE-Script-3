@@ -2,18 +2,18 @@ import time
 import re
 from util import *
 
-catch = {}
+cache = {}
 
 LocationHeaderRex = re.compile(r'<url.*?>(.*?)</url>')
 
 def GetInfoContainer():
 	info = 'info_panel_main_cont'
-	if info not in catch:
+	if info not in cache:
 		eve.GetAttr('layer', 'sidepanels', '_')
 		eve.FindChild('_', 'sidePanel', '_')
 		eve.FindChild('_', 'InfoPanelContainer', '_')
 		eve.FindChild('_', 'mainCont', info)
-		catch[info] = info
+		cache[info] = info
 	return info
 
 def GetSystemCaptionUI():

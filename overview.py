@@ -5,7 +5,7 @@ import maincont
 import shortcut as sc
 from util import *
 
-catch = {}
+cache = {}
 
 type_map = {
 	'500':'star_gate',
@@ -22,13 +22,13 @@ def GetType(itemID):
 
 def GetOvScroller():
 	scroller = "ov_scroller"
-	if scroller not in catch:
+	if scroller not in cache:
 		eve.GetAttr('layer', 'main')
 		eve.FindChild('main', 'overview')
 		eve.FindChild('overview', '__maincontainer', '_')
 		eve.FindChild('_', 'main', '_')
 		eve.FindChild('_', 'overviewscroll2', scroller)
-		catch[scroller] = scroller
+		cache[scroller] = scroller
 	return scroller
 
 def Refresh():
@@ -69,12 +69,12 @@ def ScrollTo(entry):
 
 def GetOvEntryContainer():
 	container = "ov_entry_container"
-	if container not in catch:
+	if container not in cache:
 		scroller = GetOvScroller()
 		eve.FindChild(scroller, 'maincontainer', '_')
 		eve.FindChild('_', '__clipper', '_')
 		eve.FindChild('_', '__content', container)
-		catch[container] = container;
+		cache[container] = container;
 	return container
 
 def GetOvEntries():
@@ -101,6 +101,21 @@ def GetEntryTypeGroup(entry):
 def CheckSelected(entry):
 	node = GetEntryNode(entry)
 	return eve.GetBool(node, 'selected')
+
+def CheckTargeted(entry):
+	return eve.GetBool(entry, 'targetedByMeIndicator')
+
+def CheckTargeting(entry):
+	return eve.GetBool(entry, 'targetingIndicator')
+
+def CheckHostile(entry):
+	return eve.GetBool(entry, 'hostileIndicator')
+
+def CheckActiveTarget(entry):
+	return eve.GetBool(entry, 'myActiveTargetIndicator')
+
+def CheckAttackingMe(entry):
+	return eve.GetBool(entry, 'attackingMeIndicator')
 
 def SelectEntry(entry):
 	eve.Click(entry)
@@ -254,7 +269,6 @@ def PickTarget(targetName = None, fullyMatch = False):
 	Log('Picking ' + targetName, 1)
 
 	entry = GetOvEntryByName(targetName, fullyMatch)
-
 	SelectEntry(entry)
 
 	btn = OpenCargoBtn()
@@ -270,6 +284,30 @@ def PickTarget(targetName = None, fullyMatch = False):
 	CloseWnd(inv)
 
 	Log('end', -1)
+
+def LockTarget(targetName, ensureTargeted = False, fullyMatch = True):
+	Log('Lock target "' + targetName + '"', 1)
+
+	entry = GetOvEntryByName(targetName)
+	SelectEntry(entry)
+
+	eve.Press(sc.Lock)
+	if not CheckTargeted(entry):
+		while not CheckTargeting(entry):
+			eve.Press(sc.Lock)
+			time.sleep(0.5)
+
+	while ensureTargeted and not CheckTargeted(entry):
+		time.sleep(0.5)
+
+	Log('end', -1)
+
+# ActivateAccelerationGate()
+# PickTarget()
+# LockTarget('Fuel Depot')
+entry = GetOvEntryByName('Fuel Depot')
+SelectEntry(entry)
+eve.Trace(CheckActiveTarget(entry))
 
 # entries = GetOvEntries()
 # l = eve.Len(entries)

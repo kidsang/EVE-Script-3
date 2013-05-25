@@ -1,13 +1,13 @@
 import time
 from util import *
 
-catch = {}
+cache = {}
 
 def GetMenuLayer():
 	layer = 'menu_layer'
-	if layer not in catch:
+	if layer not in cache:
 		eve.GetAttr('layer', 'menu', layer)
-		catch[layer] = layer
+		cache[layer] = layer
 	return layer
 
 def HasMenu():

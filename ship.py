@@ -1,20 +1,20 @@
 import shortcut as sc
 
-catch = {}
+cache = {}
 
 def GetShipUI():
 	shipui = 'shipui'
-	if shipui not in catch:
+	if shipui not in cache:
 		eve.GetAttr('layer', 'shipui')
-		catch[shipui] = shipui
+		cache[shipui] = shipui
 	return shipui
 
 def GetShipSr():
 	shipsr = 'shipuisr'
-	if shipsr not in catch:
+	if shipsr not in cache:
 		shipui = GetShipUI()
 		eve.GetAttr(shipui, 'sr', shipsr)
-		catch[shipsr] = shipsr
+		cache[shipsr] = shipsr
 	return shipsr
 
 def Ready():

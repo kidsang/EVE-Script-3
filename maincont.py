@@ -1,17 +1,18 @@
 from util import *
 import re
 
-catch = {}
+cache = {}
 
 StationInventoryReg = r"\('" + "InventoryStation" + r"'\,.*\)"
 StationShipReg = r"\('" + "StationShips" + r"'\,.*\)"
 SpaceInventoryReg = r"\('" + "InventorySpace" + r"'\,.*\)"
+AgentWindowReg = r"agentinteraction.+"
 
 def GetMain():
 	main = 'ui_main_cont'
-	if main not in catch:
+	if main not in cache:
 		eve.GetAttr('layer', 'main', main)
-		catch[main] = main
+		cache[main] = main
 	return main
 
 def Children():

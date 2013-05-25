@@ -5,7 +5,7 @@ import view
 import menu
 from util import *
 
-catch = {}
+cache = {}
 
 PrimerRex = r"\('.*',.*\)"
 
@@ -350,12 +350,12 @@ def ActivateShip(shipName):
 
 def GetUndockBtnCont():
 	cont = 'station_undock_btn_cont'
-	if cont not in catch:
+	if cont not in cache:
 		eve.GetAttr('layer', 'sidepanels', '_')
 		eve.FindChild('_', 'Neocom', '_')
 		eve.FindChild('_', 'mainCont', '_')
 		eve.FindChild('_', 'fixedButtonCont', cont)
-		catch[cont] = cont
+		cache[cont] = cont
 	return cont
 
 def Undock():
