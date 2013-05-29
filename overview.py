@@ -8,16 +8,23 @@ from util import *
 cache = {}
 
 type_map = {
-	'500':'star_gate',
-	'600':'station'
+	'38_16_251':'star_gate',
+	'38_16_252':'station',
+	'38_16_28':'wreck'
 }
+
+revert_type_map = {}
+for key in type_map.keys():
+	revert_type_map[type_map[key]] = key
 
 color_yellow = '(1.0, 1.0, 0.0)'
 
-def GetType(itemID):
-	hi = itemID[:3]
-	if hi in type_map:
-		return type_map[hi]
+def GetTypeByIcon(iconPath):
+	head = iconPath.rfind('/')
+	tail = iconPath.rfind('.')
+	key = iconPath[head+1:tail]
+	if key in type_map:
+		return type_map[key]
 	return 'unknown'
 
 def GetOvScroller():
@@ -79,9 +86,9 @@ def GetOvEntryContainer():
 
 def GetOvEntries():
 	container = GetOvEntryContainer()
-	entriess = 'ov_entries'
-	eve.Children(container, entriess)
-	return entriess
+	entries = 'ov_entries'
+	eve.Children(container, entries)
+	return entries
 
 def GetEntryNode(entry):
 	node = 'ov_entry_node'
@@ -93,10 +100,21 @@ def GetEntryName(entry):
 	node = GetEntryNode(entry)
 	return eve.GetString(node, 'display_NAME')
 
-def GetEntryTypeGroup(entry):
+def GetEntryIcon(entry):
+	eve.FindChild(entry, 'iconContainer', '_')
+	eve.FindChild('_', 'mainIcon', '_')
+	return eve.GetString('_', 'texturePath')
+
+def GetEntryDistance(entry):
 	node = GetEntryNode(entry)
-	itemID = eve.GetString(node, 'itemID')
-	return GetType(itemID)
+	return float(eve.GetString(node, 'rawDistance'))
+
+def GetEntryColor(entry):
+	node = GetEntryNode(entry)
+	return eve.GetString(node, 'iconColor')
+
+def IsWreck(entry):
+	return GetTypeByIcon(GetEntryIcon(entry)) == 'wreck'
 
 def CheckSelected(entry):
 	node = GetEntryNode(entry)
@@ -120,7 +138,7 @@ def CheckAttackingMe(entry):
 def SelectEntry(entry):
 	eve.Click(entry)
 	while not CheckSelected(entry):
-		eve.Click(entry)
+		eve.Click(entry, 15, 15)
 
 def GetWaypoint():
 	waypoint = 'ov_waypoint'
@@ -131,10 +149,45 @@ def GetWaypoint():
 		node = GetEntryNode(waypoint)
 		color = eve.GetString(node, 'iconColor')
 		if color == color_yellow:
-			group = GetEntryTypeGroup(waypoint)
+			icon = GetEntryIcon(waypoint)
+			group = GetTypeByIcon(icon)
 			if group == 'station' or group == 'star_gate':
 				return waypoint
 	return None
+
+def GetOvEntryByIcon(iconName):
+	Log('Finding entry "' + iconName + '" in overview', 1)
+
+	entry = 'ov_entry'
+	current = 0
+	scroller = GetOvScroller()
+	cont = GetOvEntryContainer()
+	eve.GetParent(cont, 'clipper')
+	totalHeight = int(eve.GetString(scroller, '_totalHeight'))
+	contHeight = int(eve.GetString('clipper', 'displayHeight'))
+	eve.Click(scroller, 60, 60)
+
+	while True:
+		entries = GetOvEntries()
+		l = eve.Len(entries)
+		Log('Finding in row ' + str(current) + ' to ' + str(l))
+		for i in range(current, l):
+			eve.GetListItem(entries, i, entry)
+			icon = GetEntryIcon(entry)
+			group = GetTypeByIcon(icon)
+			if group == iconName:
+				ScrollTo(entry)
+				Log('Entry finded: ' + iconName, -1)
+				return entry
+
+		current = l / 2
+		pos = int(eve.GetString(scroller, '_position'))
+		if pos + contHeight < totalHeight:
+			ScrollDown()
+		else:
+			Log('Entry not found', -1)
+			return None
+
 
 def GetOvEntryByName(targetName, fullyMatch = False):
 	Log('Finding entry "' + targetName + '" in overview', 1)
@@ -234,6 +287,9 @@ def LootAll(inventory):
 	eve.FindChild('_', 'rightCont', '_')
 	eve.FindChild('_', 'bottomRightcont', '_')
 	eve.FindChild('_', 'specialActionsCont', '_')
+	eve.Children('_', 'children')
+	while eve.Len('children') == 0:
+		time.sleep(0.5)
 	eve.FindChild('_', 'invLootAllBtn', '_')
 	eve.Click('_')
 
@@ -302,20 +358,12 @@ def LockTarget(targetName, ensureTargeted = False, fullyMatch = True):
 
 	Log('end', -1)
 
-# ActivateAccelerationGate()
-# PickTarget()
-# LockTarget('Fuel Depot')
-entry = GetOvEntryByName('Fuel Depot')
-SelectEntry(entry)
-eve.Trace(CheckActiveTarget(entry))
-
 # entries = GetOvEntries()
 # l = eve.Len(entries)
 # for i in range(l):
 # 	eve.GetListItem(entries, i, 'entry')
 # 	entry = 'entry'
 # 	eve.Trace(GetEntryName(entry))
-# 	node = GetEntryNode(entry)
-# 	eve.Trace(eve.GetString(node, 'itemID'))
+# 	icon = GetEntryIcon(entry)
+# 	eve.Trace(GetTypeByIcon(iconPath))
 # 	eve.Trace(' ')
-
