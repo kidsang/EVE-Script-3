@@ -7,13 +7,15 @@ import view
 from util import *
 
 
-def autopilot():
+def Autopilot():
 	Log('Autopilot', 1)
 
 	if view.CurrentView() != 'inflight':
 		Log('Must run in view "inflight"')
 		Log('', -1)
 		return
+
+	ov.SwitchTo('pilot')
 
 	while True:
 		if not info.HasWaypoint():
@@ -25,7 +27,8 @@ def autopilot():
 			ov.ScrollDown()
 			waypoint = ov.GetWaypoint()
 
-		wptype = ov.GetEntryTypeGroup(waypoint)
+		icon = ov.GetEntryIcon(waypoint)
+		wptype = ov.GetTypeByIcon(icon)
 		Log('Heading to ' + ov.GetEntryName(waypoint))
 
 		while not CheckDisplay(waypoint):

@@ -1,4 +1,5 @@
 import time
+import menu
 import maincont
 import ship
 import maincont
@@ -26,6 +27,19 @@ def GetTypeByIcon(iconPath):
 	if key in type_map:
 		return type_map[key]
 	return 'unknown'
+
+def GetOvHeaderIcon():
+	icon = 'overview_header_icon'
+	if icon not in cache:
+		eve.GetAttr('layer', 'main')
+		eve.FindChild('main', 'overview')
+		eve.FindChild('overview', '__maincontainer', '_')
+		eve.FindChild('_', 'headerParent', '_')
+		eve.FindChild('_', 'top', '_')
+		eve.FindChild('_', 'captionParent', '_')
+		eve.FindChild('_', 'overviewHeaderIcon', icon)
+		cache[icon] = icon
+	return icon
 
 def GetOvScroller():
 	scroller = "ov_scroller"
@@ -274,8 +288,6 @@ def DockBtn():
 def OpenCargoBtn():
 	return GetItemViewBtn('OpenCargo')
 
-# inventory actions
-
 def GetInventory(invName):
 	inv = 'overview_inventory_space_prime'
 	maincont.GetForm(invName, inv)
@@ -293,8 +305,16 @@ def LootAll(inventory):
 	eve.FindChild('_', 'invLootAllBtn', '_')
 	eve.Click('_')
 
-
 # 
+
+def SwitchTo(ovname):
+	Log('Switch to overview setting "' + ovname + '"', 1)
+	icon = GetOvHeaderIcon()
+	eve.Click(icon, 16, 16)
+	while not menu.HasMenu():
+		time.sleep(0.5)
+	menu.Click('Load ' + ovname)
+	Log('end', -1)
 
 def ActivateAccelerationGate(gateName = None):
 	Log('Travel throught acceleration gate', 1)

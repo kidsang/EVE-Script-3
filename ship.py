@@ -92,3 +92,8 @@ def TurnOffSlot(s, i):
 		ClickSlot(slot)
 	Log('end', -1)
 
+def EnableDefense(slots):
+	Log('Enable all defense', 1)
+	for slot in slots:
+		TurnOnSlot(slot[0], slot[1])
+	Log('end', -1)

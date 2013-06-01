@@ -60,8 +60,12 @@ def GetAgentMissionsPanel():
 def OpenUtilMenu():
 	Log('Open util menu', 1)
 	panel = GetAgentMissionsPanel()
-	eve.FindChild(panel, 'mainCont', '_')
-	eve.FindChild('_', 'UtilMenu', '_')
+	eve.FindChild(panel, 'topCont')
+	eve.FindChild(panel, 'mainCont')
+	eve.Click('topCont', 30, 15)
+	if not CheckDisplay('mainCont'):
+		eve.Click('topCont', 30, 15)
+	eve.FindChild('mainCont', 'UtilMenu', '_')
 	eve.FindChild('_', 'EveLabelMedium', '_')
 	eve.Click('_')
 	Log('end', -1)

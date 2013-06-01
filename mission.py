@@ -1,6 +1,7 @@
 import time
 import re
 import station
+import msgbox
 import maincont
 from util import *
 
@@ -19,7 +20,7 @@ def GetAgent(agentName):
 
 def StartConversation(agentName):
 	Log('Start conversation with ' + agentName, 1)
-	agent = GetAgent('Aura')
+	agent = GetAgent(agentName)
 	eve.FindChild(agent, 'removeButton', '_')
 	eve.Click('_')
 
@@ -40,8 +41,31 @@ def StartConversation(agentName):
 		l = eve.Len('children')
 		time.sleep(0.5)
 
+	if not HasChild('_', 'rightPane'):
+		ExpandMissionDetails(wnd)
+
+	time.sleep(1)
+
 	Log('end', -1)
 	return wnd
+
+def ExpandMissionDetails(wnd):
+	Log('Expand mission details', 1)
+
+	btns = GetButtons(wnd)
+	if HasChild(btns, 'Request Mission_Btn'):
+		eve.FindChild(btns, 'Request Mission_Btn', '_')
+	else:
+		eve.FindChild(btns, 'View Mission_Btn', '_')
+	eve.Click('_')
+
+	Log('Expanding...')
+	eve.GetAttr(wnd, 'sr', '_')
+	eve.GetAttr('_', 'main', '_')
+	while not HasChild('_', 'rightPane'):
+		time.sleep(1)
+
+	Log('end', -1)
 
 def GetButtons(wnd):
 	btns = 'mission_agent_wnd_btns'
@@ -56,6 +80,22 @@ def GetMissionName(wnd):
 	reg = re.compile(MissionNameReg)
 	result = reg.search(html)
 	return result.group(1)
+
+def QuitMission(wnd):
+	Log('Quit mission', 1)
+
+	btns = GetButtons(wnd)
+	eve.FindChild(btns, 'Quit Mission_Btn', '_')
+	eve.Click('_')
+
+	Log('Wait for msg box show up')
+	while not msgbox.HasMsgBox():
+		time.sleep(1)
+
+	box = msgbox.GetMsgBox()
+	msgbox.Confirm(box)
+
+	Log('end', -1)
 
 def DoSthAndClose(wnd, sth):
 	btns = GetButtons(wnd)
