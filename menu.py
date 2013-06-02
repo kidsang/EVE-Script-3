@@ -22,7 +22,11 @@ def GetMenu():
 	eve.GetListItem('_', 0, menu)
 	return menu
 
-def Click(targetName):
+def WaitOpen():
+	while not HasMenu():
+		time.sleep(0.5)
+
+def Click(targetName, fullyMatched = True):
 	Log('Click menu item "' + targetName + '"', 1)
 
 	while not HasMenu():
@@ -37,10 +41,17 @@ def Click(targetName):
 		if eve.GetString('entry', 'name') == 'entry':
 			eve.FindChild('entry', 'EveLabelSmall', '_')
 			name = eve.GetString('_', 'text')
-			if name == targetName:
-				eve.Click('_')
-				Log('Menu item finded', -1)
-				return True
+
+			if fullyMatched:
+				if name == targetName:
+					eve.Click('_')
+					Log('Menu item finded', -1)
+					return True
+			else:
+				if name.find(targetName) != -1:
+					eve.Click('_')
+					Log('Menu item finded', -1)
+					return True
 
 	Log('Menu item not found', -1)
 	return False

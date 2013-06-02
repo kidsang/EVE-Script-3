@@ -7,8 +7,6 @@ from util import *
 
 cache = {}
 
-PrimerRex = r"\('.*',.*\)"
-
 def GetLobby():
 	while not maincont.HasForm('lobby'):
 		time.sleep(1)
@@ -275,13 +273,18 @@ def OpenFitting():
 	Log('end', -1)
 	return form
 
-def GetSlot(fitting, i, j):
+def GetSlot(fitting, i, j, checkID = False):
 	slot = 'station_fitting_slot'
 	slotName = 'slot_' + str(i) + '_' + str(j)
 	eve.GetAttr(fitting, 'sr', '_')
 	eve.GetAttr('_', 'fitting', '_')
 	eve.FindChild('_', 'slotParent', '_')
 	eve.FindChild('_', slotName, slot)
+
+	if checkID:
+		while not eve.GetBool(slot, 'id'):
+			time.sleep(1)
+
 	return slot
 
 def UnfitSlots(slotIDs):
@@ -290,7 +293,7 @@ def UnfitSlots(slotIDs):
 	fitting = OpenFitting()
 
 	for slotID in slotIDs:
-		slot = GetSlot(fitting, slotID[0], slotID[1])
+		slot = GetSlot(fitting, slotID[0], slotID[1], True)
 		eve.RightClick(slot, 20, 30)
 		menu.Click('Unfit')
 
@@ -304,6 +307,10 @@ def FitEquips(equipNames, invOpened = False):
 		inventory = GetInventory()
 	else:
 		inventory = OpenInventory()
+
+	hangarIcon = GetInventoryTreeItemHangarUI(inventory)
+
+	eve.Click(hangarIcon)
 
 	for equipName in equipNames:
 		equip = FindItemIn(GetInventoryBody(), equipName)

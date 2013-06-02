@@ -74,7 +74,7 @@ def GetButtons(wnd):
 	return btns
 
 def GetMissionName(wnd):
-	eve.GetAttr('_', 'htmlCache', '_')
+	eve.GetAttr(wnd, 'htmlCache', '_')
 	eve.GetDictItem('_', 'briefingBrowser', '_')
 	html = eve.ToStr('_')
 	reg = re.compile(MissionNameReg)

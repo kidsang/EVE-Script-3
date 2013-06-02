@@ -1,5 +1,8 @@
 import time
 import re
+import ship
+import view
+# import pilot
 from util import *
 
 cache = {}
@@ -71,7 +74,7 @@ def OpenUtilMenu():
 	Log('end', -1)
 
 def ClickUtilMenu(itemName):
-	Log('Click util menu item "' + itemName + '"')
+	Log('Click util menu item "' + itemName + '"', 1)
 	eve.GetAttr('layer', 'utilmenu', '_')
 	eve.FindChild('_', 'ExpandedUtilMenu', '_')
 	eve.Children('_', 'children')
@@ -83,19 +86,40 @@ def ClickUtilMenu(itemName):
 			if eve.GetString('_', 'text') == itemName:
 				eve.Click('_')
 				return True
+				Log('Menu item finded', -1)
+	Log('Menu item not found', -1)
 	return False
 
 def OpenUtilMenuAddClick(itemName):
 	OpenUtilMenu()
 	ClickUtilMenu(itemName)
 
-def Dock():
-	OpenUtilMenuAddClick('Dock')
-
-def SetDestination():
-	OpenUtilMenuAddClick('Set Destination')
-
 def WarpToLocation():
+	Log('Warp to location', 1)
+
 	OpenUtilMenuAddClick('Warp to Location')
 
-# WarpToLocation()
+	while not ship.Warping():
+		time.sleep(1)
+
+	Log('Warping...')
+	while ship.Warping():
+		time.sleep(0.5)
+
+	Log('end', -1)
+
+# def BackToAgentStation():
+# 	Log('Back to agent station', 1)
+
+# 	OpenUtilMenu()
+
+# 	if ClickUtilMenu('Set Destination'):
+# 		pilot.AutoPilot()
+# 	else:
+# 		ClickUtilMenu('Dock')
+
+# 		currentView = view.CurrentView()
+# 		if currentView != 'hangar' and currentView != 'station':
+# 			time.sleep(2)
+
+# 	Log('end', -1)

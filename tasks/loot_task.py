@@ -1,12 +1,11 @@
 import sys
 import time
-from task import *
 from util import *
 import shortcut as sc
 import overview as ov
 import maincont
 
-class LootTask(Task):
+class LootTask():
 
 	def __init__(self, trace = False, tractorBeamSlots = None, afterburnerSlot = None):
 		'''
@@ -20,7 +19,7 @@ class LootTask(Task):
 		self._afterburnerSlot = afterburnerSlot
 
 	def run(self):
-		Log('Loot task started.', 1)
+		Log('Loot task started', 1)
 
 		entry = 'ov_entry'
 		entries = ov.GetOvEntries()
